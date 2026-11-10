@@ -21,6 +21,17 @@ DEBUG = env('DEBUG', default=False)
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['127.0.0.1', 'localhost'])
 
+env = environ.Env(
+    DEBUG=(bool, False)
+)
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+
+DATABASES = {
+    'default': env.db(default='sqlite:///db.sqlite3')
+    # default='sqlite...' оставлен ТОЛЬКО как локальный фоллбэк,
+    # если .env файл не настроен. В .env.example должен быть postgres URL.
+}
+
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -69,12 +80,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},

@@ -1,6 +1,14 @@
-from django.urls import path, include
+from django.urls import include, path
 from rest_framework.routers import DefaultRouter
-from .views import CourseViewSet, LessonListCreateView, LessonRetrieveUpdateDestroyView
+
+from .views import (
+    CourseViewSet,
+    LessonCreateAPIView,
+    LessonListAPIView,
+    LessonRetrieveAPIView,
+    LessonUpdateAPIView,
+    LessonDestroyAPIView,
+)
 
 app_name = 'lms'
 
@@ -9,7 +17,9 @@ router.register(r'courses', CourseViewSet, basename='course')
 
 urlpatterns = [
     path('', include(router.urls)),
-    # Generic-классы для уроков, покрывающие все CRUD операции
-    path('lessons/', LessonListCreateView.as_view(), name='lesson-list-create'),
-    path('lessons/<int:pk>/', LessonRetrieveUpdateDestroyView.as_view(), name='lesson-detail-update-destroy'),
+    path('lessons/', LessonListAPIView.as_view(), name='lesson-list'),
+    path('lessons/create/', LessonCreateAPIView.as_view(), name='lesson-create'),
+    path('lessons/<int:pk>/', LessonRetrieveAPIView.as_view(), name='lesson-detail'),
+    path('lessons/<int:pk>/update/', LessonUpdateAPIView.as_view(), name='lesson-update'),
+    path('lessons/<int:pk>/delete/', LessonDestroyAPIView.as_view(), name='lesson-delete'),
 ]

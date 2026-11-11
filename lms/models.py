@@ -1,29 +1,44 @@
+from django.conf import settings
 from django.db import models
 
+
 class Course(models.Model):
-    title = models.CharField(max_length=200, verbose_name="Название курса")
-    description = models.TextField(blank=True, verbose_name="Описание")
+    title = models.CharField(max_length=200, verbose_name='Название курса')
+    description = models.TextField(blank=True, verbose_name='Описание')
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='courses',
+        verbose_name='Владелец',
+    )
 
     class Meta:
-        verbose_name = "Курс"
-        verbose_name_plural = "Курсы"
+        verbose_name = 'Курс'
+        verbose_name_plural = 'Курсы'
 
     def __str__(self):
         return self.title
+
 
 class Lesson(models.Model):
     course = models.ForeignKey(
         Course,
         on_delete=models.CASCADE,
         related_name='lessons',
-        verbose_name="Курс"
+        verbose_name='Курс',
     )
-    title = models.CharField(max_length=200, verbose_name="Название урока")
-    description = models.TextField(blank=True, verbose_name="Описание")
+    title = models.CharField(max_length=200, verbose_name='Название урока')
+    description = models.TextField(blank=True, verbose_name='Описание')
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='lessons',
+        verbose_name='Владелец',
+    )
 
     class Meta:
-        verbose_name = "Урок"
-        verbose_name_plural = "Уроки"
+        verbose_name = 'Урок'
+        verbose_name_plural = 'Уроки'
 
     def __str__(self):
         return self.title

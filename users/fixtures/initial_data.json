@@ -1,0 +1,74 @@
+[
+  {
+    "model": "lms.course",
+    "pk": 1,
+    "fields": {
+      "title": "Python для начинающих",
+      "description": "Базовый курс по Python",
+      "owner": 1
+    }
+  },
+  {
+    "model": "lms.course",
+    "pk": 2,
+    "fields": {
+      "title": "Django REST Framework",
+      "description": "Продвинутый курс по DRF",
+      "owner": 1
+    }
+  },
+  {
+    "model": "lms.lesson",
+    "pk": 1,
+    "fields": {
+      "course": 1,
+      "title": "Введение в Python",
+      "description": "Первый урок курса",
+      "owner": 1
+    }
+  },
+  {
+    "model": "lms.lesson",
+    "pk": 2,
+    "fields": {
+      "course": 1,
+      "title": "Переменные и типы данных",
+      "description": "Второй урок курса",
+      "owner": 1
+    }
+  },
+  {
+    "model": "lms.lesson",
+    "pk": 3,
+    "fields": {
+      "course": 2,
+      "title": "Сериализаторы в DRF",
+      "description": "Первый урок по DRF",
+      "owner": 1
+    }
+  },
+  {
+    "model": "users.payment",
+    "pk": 1,
+    "fields": {
+      "user": 1,
+      "payment_date": "2026-11-01T10:00:00Z",
+      "course": 1,
+      "lesson": null,
+      "amount": "5000.00",
+      "payment_method": "bank_transfer"
+    }
+  },
+  {
+    "model": "users.payment",
+    "pk": 2,
+    "fields": {
+      "user": 1,
+      "payment_date": "2026-11-05T12:30:00Z",
+      "course": null,
+      "lesson": 3,
+      "amount": "1500.00",
+      "payment_method": "cash"
+    }
+  }
+]

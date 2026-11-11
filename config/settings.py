@@ -1,6 +1,7 @@
 import os
 import environ
 from pathlib import Path
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,10 +27,11 @@ env = environ.Env(
 )
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
+# Database — только PostgreSQL.
+# Если DATABASE_URL не задан, django-environ выбросит ImproperlyConfigured,
+# что не даст случайно запустить проект на другой БД.
 DATABASES = {
-    'default': env.db(default='sqlite:///db.sqlite3')
-    # default='sqlite...' оставлен ТОЛЬКО как локальный фоллбэк,
-    # если .env файл не настроен. В .env.example должен быть postgres URL.
+    'default': env.db('DATABASE_URL'),
 }
 
 # Application definition
@@ -41,14 +43,37 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # Third party apps
     'rest_framework',
-    'django_filters',  # <-- добавьте эту строку
+    'rest_framework_simplejwt',
+    'django_filters',
 
-    # Local apps
     'users',
     'lms',
 ]
+
+AUTH_USER_MODEL = 'users.User'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    # Закрываем авторизацией ВСЕ эндпоинты по умолчанию.
+    # Регистрация и получение токенов явно открываются через AllowAny.
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.OrderingFilter',
+    ),
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'UPDATE_LAST_LOGIN': True,
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

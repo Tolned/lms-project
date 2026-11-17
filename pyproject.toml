@@ -23,3 +23,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 package-mode = false
+[dependency-groups]
+dev = [
+    "coverage (>=7.17.3,<8.0.0)"
+]

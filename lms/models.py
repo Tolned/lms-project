@@ -6,17 +6,9 @@ from .validators import validate_youtube_url
 
 class Course(models.Model):
     title = models.CharField(max_length=200, verbose_name='Название курса')
-    description = models.TextField(
-        blank=True,
-        validators=[validate_youtube_url],
-        verbose_name='Описание',
-    )
-    owner = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='courses',
-        verbose_name='Владелец',
-    )
+    description = models.TextField(blank=True, validators=[validate_youtube_url], verbose_name='Описание')
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name='Цена курса') # <-- Добавлено
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='courses', verbose_name='Владелец')
 
     class Meta:
         verbose_name = 'Курс'

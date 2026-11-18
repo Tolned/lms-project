@@ -8,44 +8,31 @@ class Payment(models.Model):
     PAYMENT_METHOD_CHOICES = [
         ('cash', 'Наличные'),
         ('bank_transfer', 'Перевод на счет'),
+        ('stripe', 'Stripe'),
+    ]
+    PAYMENT_STATUS_CHOICES = [
+        ('pending', 'Ожидает оплаты'),
+        ('paid', 'Оплачено'),
+        ('canceled', 'Отменено'),
     ]
 
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='payments',
-        verbose_name="Пользователь"
-    )
-    payment_date = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name="Дата оплаты"
-    )
-    course = models.ForeignKey(
-        'lms.Course',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='payments',
-        verbose_name="Оплаченный курс"
-    )
-    lesson = models.ForeignKey(
-        'lms.Lesson',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='payments',
-        verbose_name="Оплаченный урок"
-    )
-    amount = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        verbose_name="Сумма оплаты"
-    )
-    payment_method = models.CharField(
-        max_length=20,
-        choices=PAYMENT_METHOD_CHOICES,
-        verbose_name="Способ оплаты"
-    )
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='payments',
+                             verbose_name="Пользователь")
+    payment_date = models.DateTimeField(auto_now_add=True, verbose_name="Дата оплаты")
+    course = models.ForeignKey('lms.Course', on_delete=models.SET_NULL, null=True, blank=True, related_name='payments',
+                               verbose_name="Оплаченный курс")
+    lesson = models.ForeignKey('lms.Lesson', on_delete=models.SET_NULL, null=True, blank=True, related_name='payments',
+                               verbose_name="Оплаченный урок")
+    amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Сумма оплаты")
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, verbose_name="Способ оплаты")
+
+    # Поля для интеграции со Stripe
+    stripe_product_id = models.CharField(max_length=100, blank=True, null=True, verbose_name="ID продукта в Stripe")
+    stripe_price_id = models.CharField(max_length=100, blank=True, null=True, verbose_name="ID цены в Stripe")
+    stripe_session_id = models.CharField(max_length=100, blank=True, null=True, verbose_name="ID сессии в Stripe")
+    payment_url = models.URLField(blank=True, null=True, verbose_name="Ссылка на оплату")
+    status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='pending',
+                              verbose_name="Статус платежа")
 
     class Meta:
         verbose_name = "Платеж"
@@ -54,7 +41,7 @@ class Payment(models.Model):
 
     def __str__(self):
         target = self.course.title if self.course else (self.lesson.title if self.lesson else "Неизвестно")
-        return f"Платеж {self.amount} руб. от {self.user} за {target}"
+        return f"Платеж {self.amount} руб. от {self.user} за {target} ({self.get_status_display()})"
 
 
 class UserManager(BaseUserManager):

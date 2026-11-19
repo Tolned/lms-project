@@ -2,10 +2,10 @@ import os
 import environ
 from pathlib import Path
 from datetime import timedelta
+from celery.schedules import crontab
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Инициализация django-environ
 env = environ.Env(DEBUG=(bool, False))
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
@@ -25,18 +25,15 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # Сторонние приложения
     'rest_framework',
     'rest_framework_simplejwt',
     'django_filters',
     'drf_spectacular',
 
-    # Локальные приложения
     'users',
     'lms',
 ]
 
-# MIDDLEWARE должен быть написан ЗАГЛАВНЫМИ буквами
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -49,7 +46,6 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'config.urls'
 
-# TEMPLATES должен быть написан ЗАГЛАВНЫМИ буквами
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -83,9 +79,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 MEDIA_URL = 'media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 AUTH_USER_MODEL = 'users.User'
 
 REST_FRAMEWORK = {
@@ -116,8 +110,27 @@ SIMPLE_JWT = {
     'UPDATE_LAST_LOGIN': True,
 }
 
-# Настройки Stripe
 STRIPE_SECRET_KEY = env('STRIPE_SECRET_KEY', default='')
 STRIPE_PUBLISHABLE_KEY = env('STRIPE_PUBLISHABLE_KEY', default='')
 STRIPE_SUCCESS_URL = env('STRIPE_SUCCESS_URL', default='http://localhost:8000/lms/payment/success/')
 STRIPE_CANCEL_URL = env('STRIPE_CANCEL_URL', default='http://localhost:8000/lms/payment/cancel/')
+
+# ==========================================
+# НАСТРОЙКИ CELERY, REDIS И EMAIL
+# ==========================================
+CELERY_BROKER_URL = env('REDIS_URL', default='redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = env('REDIS_URL', default='redis://localhost:6379/0')
+CELERY_TIMEZONE = TIME_ZONE
+
+# 👇 ДОБАВЬТЕ ЭТУ СТРОКУ 👇
+CELERY_TASK_ALWAYS_EAGER = True
+
+CELERY_BEAT_SCHEDULE = {
+    'deactivate-inactive-users-daily': {
+        'task': 'users.tasks.deactivate_inactive_users',
+        'schedule': crontab(hour=0, minute=0),
+    },
+}
+
+EMAIL_BACKEND = env('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='noreply@lms-project.local')

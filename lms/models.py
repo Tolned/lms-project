@@ -1,14 +1,18 @@
 from django.conf import settings
 from django.db import models
-
 from .validators import validate_youtube_url
-
 
 class Course(models.Model):
     title = models.CharField(max_length=200, verbose_name='Название курса')
     description = models.TextField(blank=True, validators=[validate_youtube_url], verbose_name='Описание')
-    price = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name='Цена курса') # <-- Добавлено
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='courses', verbose_name='Владелец')
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name='Цена курса')
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='courses',
+        verbose_name='Владелец',
+    )
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='Дата последнего обновления') # <-- ДОБАВЛЕНО
 
     class Meta:
         verbose_name = 'Курс'
@@ -17,7 +21,6 @@ class Course(models.Model):
 
     def __str__(self):
         return self.title
-
 
 class Lesson(models.Model):
     course = models.ForeignKey(
@@ -54,7 +57,6 @@ class Lesson(models.Model):
     def __str__(self):
         return self.title
 
-
 class Subscription(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -73,7 +75,6 @@ class Subscription(models.Model):
     class Meta:
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
-        # Один пользователь не может подписаться на один курс дважды
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'course'],

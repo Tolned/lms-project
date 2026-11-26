@@ -1,0 +1,91 @@
+services:
+  # ---------- База данных ----------
+  db:
+    image: postgres:16-alpine
+    container_name: lms_db
+    restart: always
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-lms}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data   # сохранность данных
+    expose:
+      - "5432"                                    # доступ только внутри сети
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-lms}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ---------- Redis (брокер Celery) ----------
+  redis:
+    image: redis:7-alpine
+    container_name: lms_redis
+    restart: always
+    volumes:
+      - redis_data:/data                          # сохранность данных
+    expose:
+      - "6379"                                    # доступ только внутри сети
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ---------- Django (веб-сервер) ----------
+  web:
+    build: .
+    container_name: lms_web
+    command: >
+      sh -c "python manage.py migrate &&
+             gunicorn config.wsgi:application --bind 0.0.0.0:8000"
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+      - media_volume:/app/media                   # загруженные файлы не теряются
+    ports:
+      - "8000:8000"                               # внешний доступ нужен
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ---------- Celery Worker ----------
+  celery:
+    build: .
+    container_name: lms_celery
+    command: celery -A config worker -l info
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ---------- Celery Beat (планировщик) ----------
+  celery-beat:
+    build: .
+    container_name: lms_celery_beat
+    command: celery -A config beat -l info
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  redis_data:
+  media_volume:

@@ -1,6 +1,5 @@
-# Базовый образ. Если poetry ругается на версию Python (requires-python),
-# замени на python:3.13-slim
-FROM python:3.12-slim
+# Базовый образ должен соответствовать requires-python в pyproject.toml
+FROM python:3.15-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
